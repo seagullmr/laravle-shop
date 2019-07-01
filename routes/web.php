@@ -12,7 +12,10 @@
 */
 
 // 未验证邮箱的用户尝试访问一个配置了 verified 中间件的路由，Laravel 就会提示该用户邮箱未激活
-Route::get('/', 'PagesController@root')->name('root')->middleware('verified');
+//Route::get('/', 'PagesController@root')->name('root')->middleware('verified');
+
+Route::redirect('/', '/products')->name('root');
+Route::get('products', 'ProductsController@index')->name('products.index');
 
 Auth::routes();
 
