@@ -2,19 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\ApplyRefundRequest;
 use App\Events\OrderReviewed;
+use App\Exceptions\CouponCodeUnavailableException;
+use App\Exceptions\InvalidRequestException;
+use App\Http\Requests\ApplyRefundRequest;
 use App\Http\Requests\OrderRequest;
-use App\Models\ProductSku;
-use App\Models\UserAddress;
+use App\Http\Requests\SendReviewRequest;
+use App\Models\CouponCode;
 use App\Models\Order;
+use App\Models\UserAddress;
 use App\Services\OrderService;
 use Carbon\Carbon;
-use App\Exceptions\InvalidRequestException;
-use App\Jobs\CloseOrder;
 use Illuminate\Http\Request;
-use App\Services\CartService;
-use App\Http\Requests\SendReviewRequest;
 
 class OrdersController extends Controller
 {
@@ -35,8 +34,17 @@ class OrdersController extends Controller
     {
         $user    = $request->user();
         $address = UserAddress::query()->find($request->input('address_id'));
+        $coupon  = null;
 
-        return $orderService->store($user, $address, $request->input('remark'), $request->input('items'));
+        // 如果用户提交了优惠码
+        if ($code = $request->input('coupon_code')) {
+            $coupon = CouponCode::query()->where('code', $code)->first();
+            if (!$coupon) {
+                throw new CouponCodeUnavailableException('优惠券不存在');
+            }
+        }
+        // 参数中加入 $coupon 变量
+        return $orderService->store($user, $address, $request->input('remark'), $request->input('items'), $coupon);
     }
 
     public function show(Order $order, Request $request)
