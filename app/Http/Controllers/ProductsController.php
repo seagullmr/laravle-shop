@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\CategoryService;
 use App\Models\Category;
 use App\Models\OrderItem;
 use App\Models\Product;
